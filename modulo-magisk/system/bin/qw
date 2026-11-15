@@ -1,0 +1,3 @@
+#!/system/bin/sh
+# sustituye al su oculto del fabricante (qw): no hace nada
+exit 1

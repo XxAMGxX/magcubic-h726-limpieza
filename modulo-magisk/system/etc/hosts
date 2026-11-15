@@ -1,0 +1,29 @@
+127.0.0.1       localhost
+::1             ip6-localhost
+
+# BADBOX 2.0 y telemetría del fabricante (Magcubic H726)
+0.0.0.0 stat.visionular.cn
+0.0.0.0 visionular.cn
+0.0.0.0 hmma.baidu.com
+0.0.0.0 dxp.baidu.com
+0.0.0.0 api.pixelpioneerss.com
+0.0.0.0 sta.smartinnovate.net
+0.0.0.0 bur.thedynamicleap.com
+0.0.0.0 kkoip.com
+0.0.0.0 soax.com
+0.0.0.0 event-api.aodintech.com
+0.0.0.0 pb-api.aodintech.com
+0.0.0.0 store-api.aodintech.com
+0.0.0.0 cdn-store.aodintech.com
+0.0.0.0 ota-api.aodintech.com
+0.0.0.0 faq.aodintech.com
+0.0.0.0 ota.triplesai.com
+0.0.0.0 otaapi.triplesai.com
+0.0.0.0 shortx.srafx.com
+0.0.0.0 hotack.com
+0.0.0.0 int.vaicore.site
+0.0.0.0 int.dewrain.life
+0.0.0.0 int.akisinn.info
+0.0.0.0 ipdatacloud.com
+0.0.0.0 ip4exordir.shop
+0.0.0.0 zeromedia.cloud

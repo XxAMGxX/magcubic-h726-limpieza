@@ -1,0 +1,6 @@
+id=magcubic-h726-endurecido
+name=Magcubic H726 - endurecido
+version=1.0
+versionCode=1
+author=magcubic-h726-limpieza
+description=Neutraliza el su oculto qw, cierra a la red la consola de depuración CF-Vision (TCP 1234) y bloquea por hosts los dominios de BADBOX 2.0 y la telemetría del fabricante.
