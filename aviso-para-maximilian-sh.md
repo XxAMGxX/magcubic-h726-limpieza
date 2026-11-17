@@ -18,5 +18,5 @@ build `Projector.20260116.113201`)** that are not in the current IOCs:
 6. The vendor launcher `com.htc.magcubicos` queues analytics (`__send_data_*`, device IDs) for `stat.visionular.cn`.
 
 I put a script that does your recipe automatically from the official `update.img` (checks byte-identical repack and
-board, removes StoreOS/OTA/HYK_TEST/hotacksu/qw, sets vbmeta flags, optional Magisk init_boot) here: <ENLACE AL REPO>.
+board, removes StoreOS/OTA/HYK_TEST/hotacksu/qw, sets vbmeta flags, optional Magisk init_boot) here: https://github.com/XxAMGxX/magcubic-h726-limpieza.
 Flashed and running on my unit.
