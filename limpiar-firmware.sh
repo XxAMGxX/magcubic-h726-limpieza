@@ -14,7 +14,7 @@
 #   --salida DIR              carpeta de trabajo y resultado (por defecto ./salida)
 #
 # Requisitos (Debian/Ubuntu): python3, e2fsprogs (debugfs, e2fsck), android-sdk-libsparse-utils (simg2img, img2simg).
-# Espacio: ~8 GB libres. No necesita root ni montar nada.
+# Espacio: ~7 GB libres además del update.img. No necesita root ni montar nada. Solo Linux (o WSL en Windows).
 set -euo pipefail
 AQUI=$(cd "$(dirname "$0")" && pwd); H=$AQUI/herramientas
 IMG=""; PLACA=""; INITBOOT=""; BUMP=0; TUBESKY=0; OUT=./salida
@@ -71,6 +71,7 @@ paso "5/8 Volviendo a montar super"
 dd if="$W/product_a.img" of="$W/super.raw" bs=4M oflag=seek_bytes seek=$OFF_P conv=notrunc status=none
 dd if="$W/system_a.img"  of="$W/super.raw" bs=4M oflag=seek_bytes seek=$OFF_S conv=notrunc status=none
 img2simg "$W/super.raw" "$W/ext/super.fex"
+rm -f "$W/super.raw" "$W/product_a.img" "$W/system_a.img"     # ya no hacen falta: libera ~4 GB
 
 paso "6/8 Arranque: verificación AVB desactivada${INITBOOT:+ y init_boot con Magisk}"
 # Con system/product modificados, la verificación de dm-verity fallaría: flags del vbmeta principal a 3
@@ -89,8 +90,23 @@ paso "8/8 Empaquetando y verificando"
 mkdir -p "$OUT/update"
 python3 "$H/awimg.py" repack "$IMG" "$W/ext" "$OUT/update/update.img"
 cp "$(dirname "$IMG")/auto_update.txt" "$OUT/update/" 2>/dev/null || printf 'sunxi_flash write update/update.img firmware\n' > "$OUT/update/auto_update.txt"
-rm -rf "$W/verif"; python3 "$H/awimg.py" extract "$OUT/update/update.img" "$W/verif"
-for f in $(ls "$W/ext"); do cmp -s "$W/ext/$f" "$W/verif/$f" || { echo "Verificación: $f no coincide. Paro."; exit 1; }; done
+# verificación: cada fichero empaquetado se compara con su original, uno a uno (sin desempaquetar todo otra vez)
+python3 - "$OUT/update/update.img" "$W/ext" <<'PY' || { echo "Verificación fallida. Paro."; exit 1; }
+import os, sys, struct
+img, d = sys.argv[1], sys.argv[2]
+f = open(img, "rb"); h = f.read(1024); n = struct.unpack_from("<I", h, 0x3c)[0]; f.seek(0); h = f.read(1024 + n * 1024)
+for i in range(n):
+    o = 1024 + i * 1024
+    name = h[o + 0x24:o + 0x124].split(b"\0")[0].decode()
+    orig, off = struct.unpack_from("<I", h, o + 0x12c)[0], struct.unpack_from("<I", h, o + 0x134)[0]
+    f.seek(off); g = open(os.path.join(d, name), "rb"); left = orig
+    if os.path.getsize(os.path.join(d, name)) != orig: sys.exit(f"tamaño distinto: {name}")
+    while left:
+        a = f.read(min(left, 1 << 22)); b = g.read(len(a))
+        if a != b: sys.exit(f"contenido distinto: {name}")
+        left -= len(a)
+print("Verificación: los", n, "ficheros empaquetados coinciden")
+PY
 sha256sum "$OUT/update/update.img" | tee "$OUT/limpio.sha256"
 rm -rf "$W"
 echo

@@ -39,9 +39,26 @@ adb shell pm uninstall -k --user 0 com.htc.htcotaupdate
 ```
 Esto corta la descarga del agente de proxy, pero `hotacksu`, `qw` y la consola del puerto 1234 siguen ahí.
 
-## Uso del script
+## 1. Descargar el firmware oficial
 
-Requisitos (Debian/Ubuntu/WSL): `python3`, `e2fsprogs`, `android-sdk-libsparse-utils` y unos 8 GB libres.
+Magcubic publica cada firmware en su web de soporte, con un enlace a una carpeta de MEGA que contiene `update.img` y
+`auto_update.txt`. Descarga **los dos** desde el navegador y déjalos en la misma carpeta.
+
+| Modelo (chip H726) | Página oficial |
+|---|---|
+| HY300 Pro+ | https://www.magcubic-support.com/newsinfo/3145165.html |
+| HY300 Pro | https://www.magcubic-support.com/newsinfo/3145157.html |
+| HY300 Max | https://www.magcubic-support.com/newsinfo/3145154.html |
+| HY300 Ultra | https://www.magcubic-support.com/newsinfo/3145156.html |
+| HY350 Max | https://www.magcubic-support.com/newsinfo/3145143.html |
+
+Comprueba que la página es la de **tu modelo exacto**. El script se para si el firmware no es de una placa H726
+conocida (`h726_p1` / `h726_p2`), pero no puede saber qué modelo tienes tú.
+
+## 2. Uso del script
+
+Requisitos: Linux o WSL en Windows, `python3`, `e2fsprogs`, `android-sdk-libsparse-utils` y unos **6 GB libres**
+además del `update.img` (tarda 1-2 minutos).
 ```sh
 sudo apt install python3 e2fsprogs android-sdk-libsparse-utils
 ./limpiar-firmware.sh update.img --placa h726_p2
@@ -53,11 +70,14 @@ Opciones:
 - `--quitar-tubesky`: borra `/priv-app/Tubesky`. En el HY300 Pro+ es la Play Store auténtica (firmada por Google), así
   que por defecto se deja; en el HY350 Max se ha descrito como tienda falsa.
 
+Al final dice `Verificación: los N ficheros empaquetados coinciden` y `LISTO`. Si algo no cuadra, **se para sin
+generar nada**.
+
 Qué hace: comprueba el formato (reempaqueta el original y exige que salga idéntico byte a byte) y la placa; quita
 StoreOS, HtcOtaUpdate, HYK_TEST, `hotacksu`, `qw` y su servicio; pone las banderas de `vbmeta` a 3 (verificación AVB
 desactivada, necesario para que arranque un sistema modificado); recalcula las sumas `V*.fex` y verifica el resultado.
 
-### Flashear
+## 3. Flashear
 1. USB en **FAT32 con tabla MBR** y una sola partición.
 2. Copia la carpeta `update` que genera el script (con `update.img` **y** `auto_update.txt` dentro) a la raíz del USB.
 3. Proyector **desenchufado** → pon el USB → enchúfalo y **mantén el botón de encendido del proyector** (no el del mando)
@@ -67,7 +87,7 @@ desactivada, necesario para que arranque un sistema modificado); recalcula las s
 Guarda también el `update.img` **original**: se flashea igual para volver atrás. Si no arranca ni con ese, la
 recuperación es con PhoenixSuit desde Windows.
 
-### Root con Magisk (opcional)
+## 4. Root con Magisk (opcional)
 1. Ejecuta el script una vez sin `--init-boot` y saca `init_boot.fex` del firmware oficial:
    `python3 herramientas/awimg.py extract update.img extraido/`
 2. Con el proyector conectado por ADB, instala Magisk y parchea ese `init_boot` desde la app (Instalar → Seleccionar y
@@ -78,6 +98,14 @@ recuperación es con PhoenixSuit desde Windows.
    telemetría.
 
 Con el arranque desbloqueado y root, algunas apps de vídeo (Netflix…) pueden bajar a calidad SD.
+
+## Qué está probado
+- **HY300 Pro+ (`h726_p2`)**, firmware `H726 M Projector 20260116`: flasheado, arranca, sin StoreOS/OTA/HYK_TEST/
+  `hotacksu`, Play Store y ajustes del proyector (enfoque, trapecio, HDMI, AirPlay/DLNA) funcionando; con root de Magisk.
+- El script se ha probado desde un clon limpio de este repositorio sobre el firmware oficial: la imagen generada es
+  igual, fichero a fichero, a la que se flasheó (más la eliminación de `qw`).
+- **No probado por nosotros**: placas `h726_p1` (HY350 Max; el método de base sí lo probó maximilian-sh en esa placa),
+  otros firmwares y el firmware sin Magisk en hardware. Si lo pruebas, abre una incidencia contando cómo te ha ido.
 
 ## Herramientas
 - `herramientas/awimg.py`: lee, extrae y reempaqueta imágenes Allwinner **IMAGEWTY** (recalcula las sumas `V*.fex`).
@@ -110,7 +138,8 @@ from Magcubic. **No firmware is distributed here**, only the method and tools.
   system privileges.
 - The vendor launcher `com.htc.magcubicos` ships an analytics SDK sending device identifiers to `stat.visionular.cn`.
 
-**Usage:** `sudo apt install python3 e2fsprogs android-sdk-libsparse-utils` then
+**Download** the official `update.img` **and** `auto_update.txt` for your exact model from magcubic-support.com (links
+in the Spanish section; Linux or WSL, ~6 GB free). **Usage:** `sudo apt install python3 e2fsprogs android-sdk-libsparse-utils` then
 `./limpiar-firmware.sh update.img --placa h726_p2 [--init-boot magisk_patched.img] [--version-nueva] [--quitar-tubesky]`.
 Copy the generated `update` folder (with `update.img` **and** `auto_update.txt` inside) to the root of a FAT32/MBR USB
 stick, plug it into the unpowered projector, then hold the projector's power button while connecting power until the
